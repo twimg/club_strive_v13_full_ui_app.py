@@ -1,0 +1,41 @@
+import streamlit as st
+
+# --- 背景画像とスタイル ---
+st.markdown("""
+    <style>
+    .stApp {
+        background-image: url("https://images.unsplash.com/photo-1603808033195-7b9bb827c7c9");
+        background-size: cover;
+        background-position: center;
+        font-family: 'sans-serif';
+    }
+    .container {
+        background-color: rgba(255, 255, 255, 0.85);
+        padding: 2rem;
+        border-radius: 15px;
+        margin-top: 3rem;
+    }
+    .title-style {
+        font-size: 30px;
+        font-weight: bold;
+        color: #222;
+        margin-bottom: 20px;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- タイトル ---
+st.markdown('<div class="container"><div class="title-style">⚽ スカウト画面</div>', unsafe_allow_html=True)
+
+# --- 情報未入力エリア（プレースホルダー省略） ---
+
+# --- ボタン横並び ---
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.button("契約交渉へ")
+with col2:
+    st.button("スカウトメモ")
+with col3:
+    st.button("候補から外す")
+
+st.markdown('</div>', unsafe_allow_html=True)
