@@ -1,0 +1,27 @@
+import streamlit as st
+import pandas as pd
+from datetime import datetime
+
+st.title("🔍 スカウトセンター - 契約状況フィルター付き")
+
+# CSV読み込み
+df = pd.read_csv("scouted_players.csv")
+df['契約終了日'] = pd.to_datetime(df['契約終了日'])
+
+# 検索フィルター
+col1, col2 = st.columns(2)
+
+# 📅 契約終了日フィルター
+with col1:
+    date_filter = st.date_input("契約終了日より前の選手を表示", value=datetime.today())
+    filtered_df = df[df["契約終了日"] <= pd.to_datetime(date_filter)]
+
+# ✅ フリー選手のみ
+with col2:
+    show_free = st.checkbox("現在フリーの選手のみ表示", value=False)
+    if show_free:
+        filtered_df = filtered_df[filtered_df["フリー状態"] == True]
+
+# 結果表示
+st.markdown("### 📋 該当スカウト候補一覧")
+st.dataframe(filtered_df.reset_index(drop=True))
