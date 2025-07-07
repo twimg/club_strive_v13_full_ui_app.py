@@ -1,0 +1,87 @@
+import streamlit as st
+import pandas as pd
+
+# ====== 背景CSS（画像URLは仮のもの。実環境用に差し替えてください） ======
+def set_bg():
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-image: url("https://images.unsplash.com/photo-1609263652323-f90c426b1b10");
+            background-size: cover;
+        }
+        .block {
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+# ====== CSV 読み込み ======
+@st.cache_data
+def load_data():
+    players = pd.read_csv("players.csv")
+    stats = pd.read_csv("player_stats.csv")
+    traits = pd.read_csv("national_traits.csv")
+    ai_clubs = pd.read_csv("ai_clubs.csv")
+    offers = pd.read_csv("transfer_offers.csv")
+    scouted = pd.read_csv("scouted_players.csv")
+    return players, stats, traits, ai_clubs, offers, scouted
+
+# ====== メイン ======
+def main():
+    set_bg()
+    players, stats, traits, ai_clubs, offers, scouted = load_data()
+
+    st.title("⚽ Club Strive - v13 Full UI App")
+
+    menu = st.sidebar.radio("メニュー", ["選手一覧", "AIクラブ", "移籍オファー", "スカウト", "試合結果"])
+
+    if menu == "選手一覧":
+        st.markdown('<div class="block">', unsafe_allow_html=True)
+        st.header("選手情報")
+        merged = pd.merge(players, stats, on="id", how="left")
+        st.dataframe(merged)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    elif menu == "AIクラブ":
+        st.markdown('<div class="block">', unsafe_allow_html=True)
+        st.header("AIクラブ一覧")
+        st.dataframe(ai_clubs)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    elif menu == "移籍オファー":
+        st.markdown('<div class="block">', unsafe_allow_html=True)
+        st.header("移籍オファー履歴")
+        st.dataframe(offers)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    elif menu == "スカウト":
+        st.markdown('<div class="block">', unsafe_allow_html=True)
+        st.header("スカウト候補")
+        with st.expander("🔍 絞り込み検索"):
+            pos = st.selectbox("ポジション", ["All"] + list(players["ポジション"].unique()))
+            free = st.checkbox("現在フリーの選手のみ")
+            years = st.slider("契約残年数", 0, 5, (0, 5))
+        filtered = scouted.copy()
+        if pos != "All":
+            filtered = filtered[filtered["ポジション"] == pos]
+        if free:
+            filtered = filtered[filtered["所属クラブ"] == "フリー"]
+        filtered = filtered[(filtered["契約残年数"] >= years[0]) & (filtered["契約残年数"] <= years[1])]
+        st.dataframe(filtered)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    elif menu == "試合結果":
+        st.markdown('<div class="block">', unsafe_allow_html=True)
+        st.header("試合ログ（簡易）")
+        match_log = pd.read_csv("match_log.csv") if "match_log.csv" in locals() else pd.DataFrame()
+        st.dataframe(match_log)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    main()
