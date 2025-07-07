@@ -1,0 +1,51 @@
+import streamlit as st
+import pandas as pd
+from datetime import datetime
+
+df = pd.read_csv("transfer_offers.csv")
+
+st.title("⚽️ 移籍交渉センター - 拡張版")
+
+today = datetime.today().strftime('%Y-%m-%d')
+
+for i, row in df.iterrows():
+    st.subheader(f"{row['選手名']}（{row['ポジション']}・{row['年齢']}歳）")
+    
+    st.markdown(f"""
+    - 💼 **現在クラブ**：{row['現在クラブ']}
+    - 🏁 **移籍先クラブ**：{row['移籍先クラブ']}
+    - 💰 **移籍金**：{row['移籍金']}
+    - 📄 **契約年数**：{row['契約年数']}年 / 年俸：{row['年俸']}
+    - 📊 **出場率**：{row['出場率']} / 希望度：{row['移籍希望度']}（希望：{row['希望先']}）
+    - 🧠 **代理人タイプ**：{row['代理人タイプ']}
+    - 📅 **契約満了日**：{row['契約満了日']}
+    - 📌 **現在の交渉状況**：{row['交渉ステータス']}
+    """)
+
+    if row['交渉ステータス'] == "交渉中":
+        col1, col2, col3 = st.columns(3)
+        if col1.button("承諾", key=f"acc{i}"):
+            df.at[i, '交渉ステータス'] = "承諾済"
+            st.success("✅ 契約成立！")
+        if col2.button("拒否", key=f"rej{i}"):
+            df.at[i, '交渉ステータス'] = "拒否済"
+            st.warning(f"⚠️ 【SNS炎上】{row['選手名']} が不満をSNSで投稿しました。")
+        if col3.button("再交渉", key=f"rea{i}"):
+            df.at[i, '交渉ステータス'] = "再交渉提案中"
+            if row['代理人タイプ'] == "強気型":
+                st.info("💬 代理人：『この条件では納得できません。』")
+            elif row['代理人タイプ'] == "柔軟型":
+                st.info("💬 代理人：『もう少しだけ条件を上げていただければ。』")
+            else:
+                st.info("💬 代理人：『交渉は難航するでしょう。』")
+
+    # 契約満了による無料移籍表示
+    if row['契約満了日'] <= today:
+        st.markdown("🆓 **この選手はフリー移籍可能な状態です。**")
+
+    # レンタル移籍チェック
+    if row['移籍金'] == "レンタル":
+        st.markdown("📦 **育成型レンタル移籍提案です。**")
+
+st.divider()
+st.dataframe(df)
