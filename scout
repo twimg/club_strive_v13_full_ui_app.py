@@ -1,0 +1,40 @@
+import streamlit as st
+import pandas as pd
+
+# データ読み込み（CSV）
+df = pd.read_csv("players.csv")
+
+st.title("🔍 スカウト検索")
+
+# --- 検索条件のUI ---
+col1, col2, col3 = st.columns(3)
+with col1:
+    position = st.selectbox("ポジション", ["全て"] + sorted(df["ポジション"].unique()))
+with col2:
+    free_status = st.selectbox("フリー選手のみ", ["全て", "フリー"])
+with col3:
+    max_contract_years = st.slider("契約残年数（以下）", 0, 5, 5)
+
+col4, col5 = st.columns(2)
+with col4:
+    min_loyalty = st.slider("忠誠心（以上）", 0, 100, 0)
+with col5:
+    max_transfer_wish = st.slider("移籍希望度（以下）", 0, 100, 100)
+
+# --- フィルター処理 ---
+filtered_df = df.copy()
+if position != "全て":
+    filtered_df = filtered_df[filtered_df["ポジション"] == position]
+if free_status == "フリー":
+    filtered_df = filtered_df[filtered_df["契約状態"] == "フリー"]
+filtered_df = filtered_df[filtered_df["契約残年数"] <= max_contract_years]
+filtered_df = filtered_df[filtered_df["忠誠心"] >= min_loyalty]
+filtered_df = filtered_df[filtered_df["移籍希望度"] <= max_transfer_wish]
+
+# --- 表示 ---
+st.write(f"🔎 該当選手：{len(filtered_df)}名")
+st.dataframe(filtered_df)
+
+# --- CSVダウンロード ---
+csv = filtered_df.to_csv(index=False).encode('utf-8')
+st.download_button("📥 CSVダウンロード", csv, "scouted_players.csv", "text/csv")
